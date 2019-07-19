@@ -39,7 +39,7 @@ router.post('/', validateAction, async (req, res) => {
 
 router.put('/:id', validateActionId, validateAction, async (req, res) => {
    try {
-      const action = await Actions.updateAction(req.action.id, req.body)
+      const action = await Actions.updateAction(req.action[0].id, req.body)
       res.status(200).json({ success: true, action })
    } catch (error) {
       res.status(500).json({
@@ -50,7 +50,7 @@ router.put('/:id', validateActionId, validateAction, async (req, res) => {
 
 router.delete('/:id', validateActionId, async (req, res) => {
    try {
-      await Actions.removeAction(req.action.id);
+      await Actions.removeAction(req.action[0].id);
       res.status(200).json({ success: true })
    } catch (error) {
       res.status(500).json({
