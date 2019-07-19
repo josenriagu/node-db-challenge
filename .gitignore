@@ -78,3 +78,9 @@ typings/
 
 # DynamoDB Local files
 .dynamodb/
+
+# vscode
+.vscode/
+
+# database file(s)
+*.db3
