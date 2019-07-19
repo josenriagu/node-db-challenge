@@ -4,7 +4,9 @@ const mappers = require('../helpers/mappers')
 module.exports = {
    getProjects,
    getProjectById,
-   insertProject
+   insertProject,
+   updateProject,
+   removeProject
 };
 
 async function getProjects() {
@@ -42,4 +44,17 @@ function insertProject(project) {
    return db('projects')
       .insert(project)
       .then(([id]) => getProjectById(id));
+}
+
+function updateProject(id, changes) {
+   return db('projects')
+      .where('id', id)
+      .update(changes)
+      .then(count => (count > 0 ? getProjectById(id) : null));
+}
+
+function removeProject(id) {
+   return db('projects')
+      .where('id', id)
+      .del();
 }
