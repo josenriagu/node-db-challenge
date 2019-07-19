@@ -1,0 +1,29 @@
+{
+  "name": "projectmapper",
+  "version": "1.0.0",
+  "description": "This challenge allows you to practice the concepts and techniques learned over the past Sprint and apply them in a concrete project.",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/josenriagu/node-db-challenge.git"
+  },
+  "keywords": [],
+  "author": "Josemaria Nriagu",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/josenriagu/node-db-challenge/issues"
+  },
+  "homepage": "https://github.com/josenriagu/node-db-challenge#readme",
+  "dependencies": {
+    "express": "^4.17.1",
+    "helmet": "^3.19.0",
+    "knex": "^0.19.0",
+    "sqlite": "^3.0.3"
+  },
+  "devDependencies": {
+    "nodemon": "^1.19.1"
+  }
+}
