@@ -1,6 +1,7 @@
 const express = require('express');
 
 const Projects = require('./projectsDb');
+const mw = require('../helpers/middleware');
 
 const router = express.Router();
 
@@ -15,7 +16,7 @@ router.get('/', async (req, res) => {
    }
 });
 
-router.get('/:id', validateProjectId, (req, res) => {
+router.get('/:id', mw.validateProjectId, (req, res) => {
    try {
       res.status(200).json(req.project);
    } catch (error) {
@@ -25,7 +26,7 @@ router.get('/:id', validateProjectId, (req, res) => {
    }
 });
 
-router.post('/', validateProject, async (req, res) => {
+router.post('/', mw.validateProject, async (req, res) => {
    try {
       const project = await Projects.insertProject(req.body)
       res.status(201).json(project)
@@ -36,7 +37,7 @@ router.post('/', validateProject, async (req, res) => {
    }
 });
 
-router.put('/:id', validateProjectId, validateProject, async (req, res) => {
+router.put('/:id', mw.validateProjectId, mw.validateProject, async (req, res) => {
    try {
       const project = await Projects.updateProject(req.project.id, req.body)
       res.status(200).json({ success: true, project })
@@ -47,7 +48,7 @@ router.put('/:id', validateProjectId, validateProject, async (req, res) => {
    }
 });
 
-router.delete('/:id', validateProjectId, async (req, res) => {
+router.delete('/:id', mw.validateProjectId, async (req, res) => {
    try {
       await Projects.removeProject(req.params.id);
       res.status(200).json({ success: true })
@@ -57,35 +58,5 @@ router.delete('/:id', validateProjectId, async (req, res) => {
       });
    }
 });
-
-// custom middleware
-async function validateProjectId(req, res, next) {
-   let { id } = req.params;
-   id = Number(id);
-   if (Number.isInteger(id)) {
-      req.valid = true;
-      const project = await Projects.getProjectById(id)
-      if (project) {
-         req.project = project;
-         next();
-      } else {
-         res.status(404).json({ message: 'Oops! the project with that id has gone MIA!' });
-      }
-   } else {
-      res.status(400).json({ message: 'id must be integer values' });
-   }
-};
-
-function validateProject(req, res, next) {
-   if (Object.keys(req.body).length !== 0 && req.body.constructor === Object) {
-      if (req.body.name && req.body.description) {
-         next();
-      } else {
-         res.status(400).json({ message: "missing required name and/or description fields" })
-      }
-   } else {
-      res.status(400).json({ message: "missing project data" })
-   }
-};
 
 module.exports = router;

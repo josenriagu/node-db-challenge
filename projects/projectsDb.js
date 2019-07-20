@@ -2,59 +2,48 @@ const db = require('../data/dbConfig');
 const mappers = require('../helpers/mappers')
 
 module.exports = {
-   getProjects,
-   getProjectById,
-   insertProject,
-   updateProject,
-   removeProject
-};
+   getProjects: async function () {
+      const query = await db('projects');
+      mappers.refiner(query);
+      return query;
+   },
 
-async function getProjects() {
-   const query = await db('projects');
-   mappers.refiner(query);
-   return query;
-}
+   getProjectActions: function (projectId) {
+      return db('actions')
+         .where('project_id', projectId);
+   },
 
-function getProjectActions(projectId) {
-   return db('actions')
-      .where('project_id', projectId);
+   getProjectById: async function (id) {
+      let projects = await db('projects as p')
+         .where('p.id', id);
+      let projectActions = await this.getProjectActions(id);
 
-}
-
-async function getProjectById(id) {
-   let projects = await db('projects as p')
-      .where('p.id', id);
-   let projectActions = await getProjectActions(id);
-   if (projects.length !== 0) {
-      mappers.refiner(projects);
-      mappers.refiner(projectActions);
-      let result = {
-         id: projects[0].id,
-         name: projects[0].name,
-         description: projects[0].description,
-         completed: projects[0].completed,
-         actions: projectActions
+      if (projects.length !== 0) {
+         mappers.refiner(projects);
+         mappers.refiner(projectActions);
+         let [project] = projects // destructure the single project from the projects array
+         let result = { ...project, actions: projectActions } // build the return project in the specified format
+         return result;
       }
-      return result;
+      return null
+   },
+
+   insertProject: function (project) {
+      return db('projects')
+         .insert(project)
+         .then(([id]) => this.getProjectById(id));
+   },
+
+   updateProject: function (id, changes) {
+      return db('projects')
+         .where('id', id)
+         .update(changes)
+         .then(count => (count > 0 ? this.getProjectById(id) : null));
+   },
+
+   removeProject: function (id) {
+      return db('projects')
+         .where('id', id)
+         .del();
    }
-   return null
-}
-
-function insertProject(project) {
-   return db('projects')
-      .insert(project)
-      .then(([id]) => getProjectById(id));
-}
-
-function updateProject(id, changes) {
-   return db('projects')
-      .where('id', id)
-      .update(changes)
-      .then(count => (count > 0 ? getProjectById(id) : null));
-}
-
-function removeProject(id) {
-   return db('projects')
-      .where('id', id)
-      .del();
-}
+};
