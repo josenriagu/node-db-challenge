@@ -1,7 +1,8 @@
 const express = require('express');
 
 const Actions = require('./actionsDb');
-const Projects = require('../projects/projectsDb')
+const mw = require('../helpers/middleware');
+
 const router = express.Router();
 
 router.get('/', async (req, res) => {
@@ -15,7 +16,7 @@ router.get('/', async (req, res) => {
    }
 });
 
-router.get('/:id', validateActionId, async (req, res) => {
+router.get('/:id', mw.validateActionId, async (req, res) => {
    try {
       res.status(200).json(req.action);
    } catch (error) {
@@ -25,19 +26,18 @@ router.get('/:id', validateActionId, async (req, res) => {
    }
 });
 
-router.post('/', validateAction, async (req, res) => {
+router.post('/', mw.validateAction, async (req, res) => {
    try {
       const action = await Actions.insertAction(req.body);
       res.status(201).json(action);
    } catch (error) {
-      console.log(error)
       res.status(500).json({
          message: 'Oops! something\'s gone wrong. Hang on while we fix it together'
       });
    }
 });
 
-router.put('/:id', validateActionId, validateAction, async (req, res) => {
+router.put('/:id', mw.validateActionId, mw.validateAction, async (req, res) => {
    try {
       const action = await Actions.updateAction(req.action.id, req.body)
       res.status(200).json({ success: true, action })
@@ -48,7 +48,7 @@ router.put('/:id', validateActionId, validateAction, async (req, res) => {
    }
 });
 
-router.delete('/:id', validateActionId, async (req, res) => {
+router.delete('/:id', mw.validateActionId, async (req, res) => {
    try {
       await Actions.removeAction(req.action.id);
       res.status(200).json({ success: true })
@@ -58,44 +58,5 @@ router.delete('/:id', validateActionId, async (req, res) => {
       })
    }
 });
-
-// custom middleware
-async function validateActionId(req, res, next) {
-   let { id } = req.params;
-   id = Number(id);
-   if (Number.isInteger(id)) {
-      req.valid = true;
-      const action = await Actions.getActionById(id)
-      if (action) {
-         req.action = action;
-         next();
-      } else {
-         res.status(404).json({ message: 'Oops! the action with that id has gone MIA!' });
-      }
-   } else {
-      res.status(400).json({ message: 'id must be integer values' });
-   }
-};
-
-async function validateAction(req, res, next) {
-   if (Object.keys(req.body).length !== 0 && req.body.constructor === Object) {
-      if (req.body.project_id && req.body.description && req.body.notes) {
-         if (req.body.description.length <= 128) {
-            const project = await Projects.getProjectById(req.body.project_id);
-            if (project) {
-               next();
-            } else {
-               res.status(400).json({ message: 'project id does not exist' })
-            }
-         } else {
-            res.status(400).json({ message: 'too long a description' })
-         }
-      } else {
-         res.status(400).json({ message: 'missing required notes and/or description and/or project_id fields' })
-      }
-   } else {
-      res.status(400).json({ message: 'missing action data' })
-   }
-};
 
 module.exports = router;
